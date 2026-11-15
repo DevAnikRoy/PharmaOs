@@ -23,7 +23,7 @@ Help pharmacy owners run their shop with simple stock, sales, and reporting (fut
 
 All tenant data is scoped by `pharmacy_id` via Row Level Security.
 
-Future tables (medicines, stock, sales, etc.) are **out of scope** until Phase 2+.
+Medicine catalog and per-pharmacy prices are in [docs/BACKEND_SCHEMA.md](docs/BACKEND_SCHEMA.md). Stock and sales are still later.
 
 ## 4. Folder structure
 
@@ -65,6 +65,6 @@ Future tables (medicines, stock, sales, etc.) are **out of scope** until Phase 2
 
 | | |
 |--|--|
-| **Done** | Foundation: Next.js + shadcn, docs, Supabase (`pharmacies` / `users` + RLS), signup/login/logout, dashboard, EN/BN toggle |
-| **Next task** | Medicine catalog & stock (Phase 2) — see [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) |
+| **Done** | Foundation plus Phase 2 catalog: search, other brands of the same generic, this shop's price |
+| **Next task** | Batches and expiry (Phase 3) — see [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) |
 | **Known issues** | Supabase Auth: set Site URL + redirect URLs for local dev; disable email confirm for easiest signup testing (see chat instructions) |
