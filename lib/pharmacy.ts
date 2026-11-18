@@ -23,24 +23,28 @@ export async function requirePharmacy(): Promise<{
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("users")
     .select("pharmacy_id")
     .eq("id", user.id)
     .maybeSingle();
 
+  if (profileError) throw new Error(profileError.message);
+
   if (!profile) {
-    redirect("/signup");
+    redirect("/setup");
   }
 
-  const { data: pharmacy } = await supabase
+  const { data: pharmacy, error: pharmacyError } = await supabase
     .from("pharmacies")
     .select("name")
     .eq("id", profile.pharmacy_id)
     .single();
 
+  if (pharmacyError) throw new Error(pharmacyError.message);
+
   if (!pharmacy) {
-    redirect("/signup");
+    redirect("/setup");
   }
 
   return { locale, dict, pharmacyName: pharmacy.name };

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { signIn } from "@/app/actions/auth";
+import { resendConfirmation, signIn } from "@/app/actions/auth";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,10 +21,12 @@ import type { Dictionary } from "@/lib/i18n/get-dictionary";
 type Props = {
   locale: Locale;
   dict: Dictionary;
+  confirmationError?: boolean;
 };
 
-export function LoginForm({ locale, dict }: Props) {
-  const [error, setError] = useState<string | null>(null);
+export function LoginForm({ locale, dict, confirmationError }: Props) {
+  const [error, setError] = useState<string | null>(confirmationError ? dict.confirmationError : null);
+  const [confirmationSent, setConfirmationSent] = useState(false);
   const [pending, startTransition] = useTransition();
 
   return (
@@ -55,6 +57,7 @@ export function LoginForm({ locale, dict }: Props) {
               {error}
             </p>
           )}
+          {confirmationSent && <p role="status" className="text-sm text-muted-foreground">{dict.confirmationSent}</p>}
           <div className="space-y-2">
             <Label htmlFor="email">{dict.email}</Label>
             <Input
@@ -80,6 +83,16 @@ export function LoginForm({ locale, dict }: Props) {
           <Button type="submit" className="w-full" disabled={pending}>
             {dict.loginButton}
           </Button>
+          <Button type="submit" variant="outline" className="w-full" disabled={pending}
+            formNoValidate formAction={(data) => {
+              setError(null);
+              setConfirmationSent(false);
+              startTransition(async () => {
+                const result = await resendConfirmation(data);
+                if (result.error) setError(dict.resendError);
+                else setConfirmationSent(true);
+              });
+            }}>{dict.resendConfirmation}</Button>
           <p className="text-center text-sm text-muted-foreground">
             {dict.noAccount}{" "}
             <Link href="/signup" className="text-primary underline-offset-4 hover:underline">
