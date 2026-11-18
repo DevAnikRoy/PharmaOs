@@ -82,3 +82,33 @@ export type StockSummary = {
   expired_packs: number;
   next_expiry: string | null;
 };
+
+export type CashSale = {
+  id: string;
+  request_id: string;
+  total: number;
+  payment_method: "cash";
+  created_at: string;
+};
+
+export type SaleLine = {
+  id: string;
+  product_id: string;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+  brand_name_en: string;
+  brand_name_bn: string | null;
+  strength: string;
+  form: MedicineForm;
+  pack_unit: PackUnit;
+  pack_quantity: number;
+};
+
+export type SaleAllocation = {
+  sale_line_id: string;
+  batch_id: string;
+  quantity: number;
+  batch_number: string;
+  expiry_date: string;
+};

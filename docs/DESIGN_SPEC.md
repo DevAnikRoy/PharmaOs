@@ -39,3 +39,13 @@
 - `/setup` offers pharmacy-name entry and sign out for interrupted onboarding.
 - Confirmation failures and setup errors use localized messages. Login includes
   confirmation email resend; the email field is reused without requiring a password.
+
+
+## Cash counter and receipts
+
+- Sales navigation opens search, a persistent-in-navigation cart, and the latest 20 receipts.
+- Whole packs and per-pack prices are explicit. The confirmation button records full cash payment.
+- An uncertain checkout keeps its lines fixed and offers Retry this checkout.
+- Receipts show the shop, unique reference, Bangladesh timestamp, product/price snapshots,
+  line totals, grand total, and allocated batches. Printing hides navigation and controls.
+- The dashboard shows today's cash total and receipt count with a link to the counter.

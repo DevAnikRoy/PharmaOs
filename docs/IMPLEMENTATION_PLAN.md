@@ -1,6 +1,6 @@
 # IMPLEMENTATION_PLAN — PharmaOS
 
-Retail pharmacies in Bangladesh. Phases 1–3 are implemented in source; apply the latest migration to enable batch stock in Supabase. Do not start AI features until the shop can already sell, stock, and look up a generic by hand.
+Retail pharmacies in Bangladesh. Phases 1–3 and Phase 4 cash billing are implemented in source; apply pending migrations to enable them in Supabase. Do not start AI features until the shop can already sell, stock, and look up a generic by hand.
 
 Safety rule for every later AI feature: the app suggests, the pharmacist confirms, and the confirm or override is stored. The app never dispenses on its own.
 
@@ -51,11 +51,20 @@ No loose-unit quantities, stock corrections, or write-offs are implemented yet.
 
 ## Phase 4 — Counter and books
 
-- Sale: lines, qty, price, cash or baki (customer credit).
-- Customer credit ledger.
-- Supplier and purchase entry (typed).
-- Supplier dues.
-- Daily sales total on the dashboard.
+Implemented:
+
+- Cash counter: up to 100 distinct whole-pack lines, editable prices, exact decimal totals.
+- Atomic sale, receipt snapshots, and FEFO batch deduction with row locks and deterministic product order.
+- Duplicate checkout protection; shortages roll back every line and stock change.
+- Printable receipts including allocated batch details, latest 20 sales, and daily cash totals in Bangladesh time.
+- Browser-tab recovery for an uncertain checkout using the same request reference.
+- Tenant-scoped sales, lines, allocations, and daily totals with RPC-only writes.
+
+Remaining:
+
+- Customer profiles, baki sales, and repayment ledger.
+- Supplier and purchase entry (typed), payments, and supplier dues.
+- Returns/voids and stock corrections need explicit reversal/audit flows; direct edits are not supported.
 
 ## Phase 5 — Expiry alerts
 
@@ -106,8 +115,9 @@ No loose-unit quantities, stock corrections, or write-offs are implemented yet.
 
 ## Next build
 
-Phase 4, first slice: cash billing with whole-pack sale lines. Deduct non-expired
-batches by earliest expiry, receipt time, then ID inside one database transaction.
-Lock eligible rows, reject insufficient stock, record allocations, and make retries
-idempotent. Show the receipt and daily sales total. Then add customer credit and
-supplier/purchase accounting. Before loose-tablet sales, design base-unit conversion.
+Phase 4 customer credit (baki): customer profiles, partial/unpaid sales with the
+same atomic batch allocator, and an immutable customer ledger. Record repayments
+idempotently and show balances and transaction history. Keep cash collected,
+credit issued, and repayments separate in reports. Then implement supplier
+profiles, purchase invoices, supplier payments, and dues. Loose-tablet sales
+still require a base-unit conversion design.

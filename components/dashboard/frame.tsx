@@ -10,7 +10,7 @@ type Props = {
   dict: Dictionary;
   locale: Locale;
   pharmacyName: string;
-  active: "dashboard" | "medicines" | "stock";
+  active: "dashboard" | "medicines" | "stock" | "sales";
   children: React.ReactNode;
 };
 
@@ -23,7 +23,7 @@ export function DashboardFrame({
 }: Props) {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 p-6">
-      <header className="flex flex-col gap-4 border-b pb-4">
+      <header className="flex flex-col gap-4 border-b pb-4 print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm text-muted-foreground">{dict.appName}</p>
@@ -65,6 +65,9 @@ export function DashboardFrame({
           >
             {dict.navStock}
           </Link>
+          <Link href="/dashboard/sales" className={cn(buttonVariants({
+            variant: active === "sales" ? "default" : "outline", size: "sm",
+          }))}>{dict.navSales}</Link>
         </nav>
       </header>
       {children}

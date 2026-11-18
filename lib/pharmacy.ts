@@ -9,6 +9,8 @@ export async function requirePharmacy(): Promise<{
   locale: Locale;
   dict: Dictionary;
   pharmacyName: string;
+  pharmacyId: string;
+  userId: string;
 }> {
   await connection();
   const locale = await getLocale();
@@ -47,5 +49,5 @@ export async function requirePharmacy(): Promise<{
     redirect("/setup");
   }
 
-  return { locale, dict, pharmacyName: pharmacy.name };
+  return { locale, dict, pharmacyName: pharmacy.name, pharmacyId: profile.pharmacy_id, userId: user.id };
 }

@@ -9,6 +9,8 @@
 | `/login` | Guest | Email/password → `/dashboard` |
 | `/logout` | Logged in | Sign out → `/login` |
 | `/setup` | Signed-in owner without a profile | Confirm pharmacy name and retry pharmacy creation; sign out is available |
+| `/dashboard/sales` | Owner | Search/add whole-pack lines, confirm cash payment, view recent sales |
+| `/dashboard/sales/[id]` | Owner | View/print this shop's immutable receipt and batch allocations |
 | `/dashboard/stock` | Owner | Search a medicine, receive whole-pack lots, view totals and expiry-ordered batch history |
 | `/dashboard` | Owner | Show pharmacy name, language toggle, logout |
 | `/dashboard/medicines` | Owner | Search brand or generic, open other brands, set this shop's price, add a medicine |
@@ -38,7 +40,17 @@
 5. Show physical/sellable/expired totals and receipts in expiry order.
 6. Expired receipts can be recorded for reconciliation but are not sellable. A month/year expiry is entered as the month's final date.
 
-Sales and AI are still later. See [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md).
+## Cash sales
+
+1. Open Sales, search a product, and add it to the cart. Search navigation preserves the cart.
+2. Review whole-pack quantities and pack prices. Missing prices require manual entry; edits apply to this sale only.
+3. Confirm full cash payment. The server recomputes totals and commits the sale and FEFO stock deductions together.
+4. Insufficient non-expired stock rejects every line; adjust quantities or receive more stock before retrying.
+5. A network/unknown result locks the cart for a retry with the same reference. Pending checkout data survives reloads in session storage scoped to this user/shop.
+6. Open the matching receipt to clear recovery data. Print the receipt or start another sale.
+7. Recent sales show the latest 20 receipts; the dashboard shows today's count and total in Asia/Dhaka.
+
+Customer credit, supplier accounting, and AI are still later. See [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md).
 
 ## i18n
 

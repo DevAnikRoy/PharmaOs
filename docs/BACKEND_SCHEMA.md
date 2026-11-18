@@ -116,6 +116,36 @@ Security-invoker view grouped by tenant/product: `total_packs`, `sellable_packs`
 `expired_packs`, and `next_expiry`. Expiry compares to the Asia/Dhaka date, with
 stock sellable through its expiry date. Physical stock includes expired packs.
 FEFO uses non-expired positive-quantity lots sorted by expiry, creation time, ID.
-Sales and atomic stock deduction remain Phase 4 work.
+Cash sales now deduct batches atomically through `complete_cash_sale`.
 
 Migration: `20261118090000_batches_and_signup_recovery.sql`.
+
+
+## Cash sales (Phase 4, first slice)
+
+Migration: `20261118100000_cash_sales.sql`.
+
+- `sales`: tenant, unique tenant/request reference, canonical request lines, cash
+  payment method, server-computed total, cashier, and timestamp.
+- `sale_lines`: product reference, whole-pack quantity, unit price, generated line
+  total, and immutable product description/strength/form/pack snapshots.
+- `sale_allocations`: sale-line/batch references, pack quantity, batch number,
+  expiry, and purchase-cost snapshots. Composite foreign keys enforce tenant identity.
+- All three tables enable tenant RLS and allow authenticated SELECT only.
+- `daily_cash_sales`: security-invoker view with date, count, and total grouped by
+  tenant and Asia/Dhaka sale date. Aggregation happens in SQL, independent of API row limits.
+
+### `complete_cash_sale(p_request_id uuid, p_lines jsonb)`
+
+Input lines contain `product_id`, positive integer `quantity`, and decimal
+`unit_price` (BDT per whole pack). Between 1 and 100 distinct products are allowed.
+Prices have at most two decimal places; a sale total is limited to 9,999,999,999.99.
+Per-sale prices may differ from the master pharmacy price. The server never accepts
+client totals, tenant IDs, batch selections, or claimed stock availability.
+
+The RPC derives tenant/cashier identity, canonicalizes lines, and locks its request
+reference. Identical retries return the existing sale even after depletion; changed
+payloads are rejected. It processes products in UUID order and locks sellable batches
+in expiry/receipt-time/ID order, waiting for competing locks. Each allocation and
+stock deduction is stored with the receipt. A shortage on any line raises an exception,
+rolling back the entire sale. The operation is cash-only and cannot edit or void sales.

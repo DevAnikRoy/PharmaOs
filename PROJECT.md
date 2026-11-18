@@ -1,6 +1,6 @@
 # PharmaOS
 
-Cloud pharmacy management for small pharmacies in Bangladesh. Foundation, shared medicine catalog, and batch stock tracking.
+Cloud pharmacy management for small pharmacies in Bangladesh. Foundation, shared medicine catalog, batch stock tracking, and cash billing.
 
 ## 1. Vision
 
@@ -23,7 +23,7 @@ Help pharmacy owners run their shop with simple stock, sales, and reporting (fut
 
 All tenant data is scoped by `pharmacy_id` via Row Level Security.
 
-Medicine catalog and per-pharmacy prices are in [docs/BACKEND_SCHEMA.md](docs/BACKEND_SCHEMA.md). Batch stock tracking is implemented; billing and sales are next.
+Medicine catalog and per-pharmacy prices are in [docs/BACKEND_SCHEMA.md](docs/BACKEND_SCHEMA.md). Batch stock and cash sales are implemented. Customer credit and supplier accounting are next.
 
 ## 4. Folder structure
 
@@ -46,7 +46,7 @@ Medicine catalog and per-pharmacy prices are in [docs/BACKEND_SCHEMA.md](docs/BA
 │   └── migrations/
 ├── docs/
 ├── public/
-├── middleware.ts
+├── proxy.ts
 └── PROJECT.md
 ```
 
@@ -65,9 +65,9 @@ Medicine catalog and per-pharmacy prices are in [docs/BACKEND_SCHEMA.md](docs/BA
 
 | | |
 |--|--|
-| **Done** | Foundation, Phase 2 catalog, signup recovery, and Phase 3 batches: purchase lots, expiry, per-shop stock totals, EN/BN |
-| **Next task** | Counter and books (Phase 4): atomic FEFO sales, then customer credit, suppliers, and purchases — see [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) |
-| **Known issues** | Apply the Phase 3 migration before using Stock. Configure Auth Site URL and allow `/auth/callback` redirects. Build verification in this sandbox is blocked by Turbopack port restrictions. See README. |
+| **Done** | Foundation, catalog, signup recovery, batch stock, and Phase 4 cash billing: atomic FEFO allocation, receipts, recent sales, and daily totals, EN/BN |
+| **Next task** | Phase 4 customer credit (baki) and repayments, then suppliers and purchase accounting — see [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) |
+| **Known issues** | Apply the Phase 3 and cash-sales migrations before using Stock, Sales, or dashboard totals. Configure Auth Site URL and allow `/auth/callback` redirects. Build verification in this sandbox is blocked by Turbopack port restrictions. See README. |
 
 ## 7. Stock units
 
@@ -79,8 +79,22 @@ expiry date. Expired stock remains in physical totals but is excluded from sella
 
 ## 8. Next implementation
 
-Start Phase 4 with a cash sale: choose medicines, enter whole pack quantities,
-confirm the total, and atomically deduct sellable batches in FEFO order. Use row
-locks and an idempotency reference to prevent overselling or duplicate sales.
-Store sale lines and their batch allocations, then add daily dashboard totals.
-Customer credit, suppliers, and supplier dues follow that transaction foundation.
+Add customer profiles and baki sales using the existing atomic sale/allocation
+transaction. Record the paid amount and outstanding amount with immutable ledger
+entries. Add idempotent repayment entry and show each customer's balance/history.
+Cash dashboard totals must continue to distinguish cash collected from credit
+sales. Supplier profiles, purchase invoices, supplier payments, and dues follow.
+
+## 9. Cash sale behavior
+
+The counter supports 1–100 distinct medicine lines, whole packs, and per-sale price
+edits. Totals are calculated from decimal cents and recomputed in Postgres. Each
+checkout atomically stores the receipt, product/price snapshots and batch
+allocations, then reduces sellable batches in expiry/time/ID order. Insufficient
+stock rolls the whole checkout back. Duplicate references return the original
+receipt. Daily totals use the Asia/Dhaka date.
+
+An uncertain checkout is retained in this browser tab's session storage, scoped
+to pharmacy and user. A retry uses the same reference and details. Recovery is
+cleared when its matching receipt is opened. Drafts before checkout are kept
+while searching, but are not saved across a page reload.

@@ -34,7 +34,19 @@ Schema details: [BACKEND_SCHEMA.md](./BACKEND_SCHEMA.md).
 - `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`.
 - Tests use PGlite (embedded Postgres) with a minimal Supabase auth/role fixture.
   They apply every migration and check RLS, RPC permissions, receipt retries,
-  expiry totals, signup recovery, and validation. They do not replace a live
+  expiry totals, cash-sale allocation/rollback, receipt snapshots, daily timezone boundaries, signup recovery, and validation. They do not replace a live
   Supabase/Auth browser smoke test.
 - Current sandbox prevents Turbopack from binding a CSS worker port; production
   build must be verified in an environment that permits local process networking.
+
+
+## Cash checkout consistency
+
+Cash checkout runs through a SECURITY DEFINER RPC with authenticated tenant
+resolution, request advisory locking, globally ordered product processing, and
+FEFO row locks. Sale/line/allocation inserts and batch updates share one transaction.
+The client uses integer decimal cents for preview; Postgres recomputes final totals.
+Browser session storage retains uncertain checkout details until the corresponding
+receipt is opened. This recovery is scoped to both pharmacy and user.
+Embedded tests validate transactions and sequential oversell rejection; independent
+Postgres connections must be used to verify real lock contention in deployment QA.
