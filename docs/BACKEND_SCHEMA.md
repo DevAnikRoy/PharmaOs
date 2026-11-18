@@ -24,7 +24,7 @@
 
 ## RPC
 
-- `complete_owner_signup(pharmacy_name text, owner_full_name text default null)` — SECURITY DEFINER; creates pharmacy + owner row for `auth.uid()`.
+- `complete_owner_signup(pharmacy_name text, owner_full_name text default null)` — SECURITY DEFINER; creates pharmacy + owner row for `auth.uid()`; serialized per user and idempotent on retry.
 
 ## RLS summary
 
@@ -87,3 +87,35 @@ Read-only view of `products` joined to `generics`. Used for search.
 ## Auth
 
 Supabase manages `auth.users`; app never stores passwords.
+
+## Stock (Phase 3)
+
+### `stock_batches`
+
+One purchase receipt/lot per row: `id`, `pharmacy_id`, `product_id`, `request_id`,
+`batch_number`, `expiry_date`, `received_quantity`, `quantity_remaining`,
+`purchase_price`, `received_by`, and `created_at`.
+
+- Quantities are positive whole catalog packs on receipt. Remaining quantity is
+  between zero and the received quantity. All prices are BDT per pack.
+- `(pharmacy_id, request_id)` is unique. Reusing a receipt reference with identical
+  details returns the original ID; changed details are rejected.
+- Different receipts may have the same product, batch number, and expiry.
+- Authenticated users can select only their own pharmacy's lots. Direct insert,
+  update, and delete are revoked. No client-side stock deduction is allowed.
+
+### `receive_stock_batch(...)`
+
+SECURITY DEFINER RPC derives the tenant from `auth.uid()`, validates the input,
+locks the tenant/receipt reference, and inserts a lot atomically. It does not
+change selling prices. Unauthenticated users and users without a pharmacy are rejected.
+
+### `pharmacy_stock`
+
+Security-invoker view grouped by tenant/product: `total_packs`, `sellable_packs`,
+`expired_packs`, and `next_expiry`. Expiry compares to the Asia/Dhaka date, with
+stock sellable through its expiry date. Physical stock includes expired packs.
+FEFO uses non-expired positive-quantity lots sorted by expiry, creation time, ID.
+Sales and atomic stock deduction remain Phase 4 work.
+
+Migration: `20261118090000_batches_and_signup_recovery.sql`.

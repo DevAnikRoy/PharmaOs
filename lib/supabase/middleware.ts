@@ -33,18 +33,22 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/signup");
-  const isProtected = pathname.startsWith("/dashboard");
+  const isProtected = pathname.startsWith("/dashboard") || pathname === "/setup";
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    return NextResponse.redirect(url);
+    const response = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+    return response;
   }
 
   if (isAuthRoute && user) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+    const response = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+    return response;
   }
 
   return supabaseResponse;

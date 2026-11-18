@@ -80,8 +80,7 @@ export default async function MedicinesPage({ searchParams }: Props) {
                     </span>
                     <span className="mt-1 block text-sm text-muted-foreground">
                       {genericTitle(product, locale)} · {product.strength} ·{" "}
-                      {formLabel(dict, product.form)} · {product.pack_quantity}{" "}
-                      {packLabel(dict, product.pack_unit)}
+                      {formLabel(dict, product.form)} · {packLabel(dict, product.pack_unit)} · {dict.packDescription}: {product.pack_quantity}
                     </span>
                   </span>
                   <span className="text-sm">
@@ -102,6 +101,9 @@ export default async function MedicinesPage({ searchParams }: Props) {
             <div>
               <p className="text-sm text-muted-foreground">{dict.selected}</p>
               <h2 className="text-xl font-medium">{productTitle(selected, locale)}</h2>
+              <Link href={`/dashboard/stock?product=${selected.id}`} className="text-sm text-primary underline">
+                {dict.receiveFor}
+              </Link>
               <p className="text-sm text-muted-foreground">
                 {genericTitle(selected, locale)} · {selected.strength} ·{" "}
                 {formLabel(dict, selected.form)}
@@ -137,7 +139,7 @@ export default async function MedicinesPage({ searchParams }: Props) {
                       <p className="font-medium">{productTitle(product, locale)}</p>
                       <p className="text-sm text-muted-foreground">
                         {product.strength} · {formLabel(dict, product.form)} ·{" "}
-                        {product.pack_quantity} {packLabel(dict, product.pack_unit)}
+                        {packLabel(dict, product.pack_unit)} · {dict.packDescription}: {product.pack_quantity}
                         {product.manufacturer ? ` · ${product.manufacturer}` : ""}
                       </p>
                     </div>

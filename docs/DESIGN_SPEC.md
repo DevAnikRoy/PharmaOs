@@ -28,3 +28,14 @@
 
 - Product name: **PharmaOS**
 - Logo / colors TO DECIDE
+
+## Stock and onboarding recovery
+
+- Dashboard navigation includes Stock. Tables scroll horizontally on narrow screens.
+- Stock always labels quantities as whole packs and prices as per pack.
+- Expired and sellable stock are shown separately; expiry status includes text.
+- Each receipt lists batch number, expiry, received/remaining packs, buy price,
+  receipt date, and status. FEFO ordering is shown without deducting stock.
+- `/setup` offers pharmacy-name entry and sign out for interrupted onboarding.
+- Confirmation failures and setup errors use localized messages. Login includes
+  confirmation email resend; the email field is reused without requiring a password.

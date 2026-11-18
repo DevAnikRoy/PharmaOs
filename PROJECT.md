@@ -1,6 +1,6 @@
 # PharmaOS
 
-Cloud pharmacy management for small pharmacies in Bangladesh. Foundation phase: auth, tenant (pharmacy), and docs only.
+Cloud pharmacy management for small pharmacies in Bangladesh. Foundation, shared medicine catalog, and batch stock tracking.
 
 ## 1. Vision
 
@@ -23,7 +23,7 @@ Help pharmacy owners run their shop with simple stock, sales, and reporting (fut
 
 All tenant data is scoped by `pharmacy_id` via Row Level Security.
 
-Medicine catalog and per-pharmacy prices are in [docs/BACKEND_SCHEMA.md](docs/BACKEND_SCHEMA.md). Stock and sales are still later.
+Medicine catalog and per-pharmacy prices are in [docs/BACKEND_SCHEMA.md](docs/BACKEND_SCHEMA.md). Batch stock tracking is implemented; billing and sales are next.
 
 ## 4. Folder structure
 
@@ -65,6 +65,22 @@ Medicine catalog and per-pharmacy prices are in [docs/BACKEND_SCHEMA.md](docs/BA
 
 | | |
 |--|--|
-| **Done** | Foundation plus Phase 2 catalog: search, other brands of the same generic, this shop's price |
-| **Next task** | Batches and expiry (Phase 3) — see [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) |
-| **Known issues** | Supabase Auth: set Site URL + redirect URLs for local dev; disable email confirm for easiest signup testing (see chat instructions) |
+| **Done** | Foundation, Phase 2 catalog, signup recovery, and Phase 3 batches: purchase lots, expiry, per-shop stock totals, EN/BN |
+| **Next task** | Counter and books (Phase 4): atomic FEFO sales, then customer credit, suppliers, and purchases — see [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) |
+| **Known issues** | Apply the Phase 3 migration before using Stock. Configure Auth Site URL and allow `/auth/callback` redirects. Build verification in this sandbox is blocked by Turbopack port restrictions. See README. |
+
+## 7. Stock units
+
+Quantities are whole catalog packs. One strip containing 10 tablets is one pack;
+one bottle is one pack. Purchase and selling prices are BDT per pack. Existing
+selling prices are not converted. Loose-unit sales need a separate conversion design.
+Expiry uses the Asia/Dhaka calendar: a lot remains sellable through its printed
+expiry date. Expired stock remains in physical totals but is excluded from sellable totals.
+
+## 8. Next implementation
+
+Start Phase 4 with a cash sale: choose medicines, enter whole pack quantities,
+confirm the total, and atomically deduct sellable batches in FEFO order. Use row
+locks and an idempotency reference to prevent overselling or duplicate sales.
+Store sale lines and their batch allocations, then add daily dashboard totals.
+Customer credit, suppliers, and supplier dues follow that transaction foundation.

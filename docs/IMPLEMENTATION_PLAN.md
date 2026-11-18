@@ -1,6 +1,6 @@
 # IMPLEMENTATION_PLAN — PharmaOS
 
-Retail pharmacies in Bangladesh. Foundation (Phase 1) is done. Do not start AI features until the shop can already sell, stock, and look up a generic by hand.
+Retail pharmacies in Bangladesh. Phases 1–3 are implemented in source; apply the latest migration to enable batch stock in Supabase. Do not start AI features until the shop can already sell, stock, and look up a generic by hand.
 
 Safety rule for every later AI feature: the app suggests, the pharmacist confirms, and the confirm or override is stored. The app never dispenses on its own.
 
@@ -36,9 +36,18 @@ No stock math.
 
 ## Phase 3 — Batches and expiry
 
-- Each purchase lot: batch number, expiry, quantity, buy price.
-- Shelf quantity is the sum of batches.
-- Selling uses earliest expiry first (FEFO).
+Implemented:
+
+- Each receipt records batch number, expiry, whole pack quantity, and buy price per pack.
+- Physical, sellable, and expired stock totals are calculated from remaining batch quantities.
+- Stock screen searches the shared catalog and lists receipts by expiry, receipt time, and ID.
+- Asia/Dhaka expiry boundary; stock is sellable through the expiry date.
+- Tenant RLS and RPC-only writes; repeated receipt submissions do not duplicate stock.
+- Signup recovery at `/setup`, idempotent pharmacy creation, confirmation email resend.
+- Automated embedded Postgres checks and auth/validation regression tests (`npm test`).
+
+FEFO order is prepared here. Atomic stock deduction is implemented with sales in Phase 4.
+No loose-unit quantities, stock corrections, or write-offs are implemented yet.
 
 ## Phase 4 — Counter and books
 
@@ -95,6 +104,10 @@ No stock math.
 - Replacing the pharmacist’s judgment.
 - Medical diagnosis.
 
-## Next build, when you say go
+## Next build
 
-Phase 2 only: add a medicine, search it, show other brands of the same generic and the price.
+Phase 4, first slice: cash billing with whole-pack sale lines. Deduct non-expired
+batches by earliest expiry, receipt time, then ID inside one database transaction.
+Lock eligible rows, reject insufficient stock, record allocations, and make retries
+idempotent. Show the receipt and daily sales total. Then add customer credit and
+supplier/purchase accounting. Before loose-tablet sales, design base-unit conversion.

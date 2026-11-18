@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { signOut } from "@/app/actions/auth";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import { cn } from "@/lib/utils";
@@ -9,7 +10,7 @@ type Props = {
   dict: Dictionary;
   locale: Locale;
   pharmacyName: string;
-  active: "dashboard" | "medicines";
+  active: "dashboard" | "medicines" | "stock";
   children: React.ReactNode;
 };
 
@@ -30,15 +31,12 @@ export function DashboardFrame({
           </div>
           <div className="flex items-center gap-3">
             <LanguageSwitcher locale={locale} dict={dict} />
-            <Link
-              href="/logout"
-              className={cn(buttonVariants({ variant: "outline", size: "default" }))}
-            >
-              {dict.logout}
-            </Link>
+            <form action={signOut}>
+              <Button type="submit" variant="outline">{dict.logout}</Button>
+            </form>
           </div>
         </div>
-        <nav className="flex gap-2">
+        <nav className="flex flex-wrap gap-2">
           <Link
             href="/dashboard"
             className={cn(
@@ -60,6 +58,12 @@ export function DashboardFrame({
             )}
           >
             {dict.navMedicines}
+          </Link>
+          <Link
+            href="/dashboard/stock"
+            className={cn(buttonVariants({ variant: active === "stock" ? "default" : "outline", size: "sm" }))}
+          >
+            {dict.navStock}
           </Link>
         </nav>
       </header>
